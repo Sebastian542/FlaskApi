@@ -1,64 +1,70 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Panel de Control - Ferretería</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Listado de Productos</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
+            margin: 2rem;
+            background-color: #f9f9f9;
         }
-        h2 {
-            margin-top: 40px;
+        h1 {
             color: #333;
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
+            margin-top: 1rem;
+            background-color: white;
         }
         th, td {
-            padding: 10px;
-            border: 1px solid #aaa;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
             text-align: left;
         }
         th {
-            background-color: #eee;
+            background-color: #4CAF50;
+            color: white;
         }
-        a {
-            color: #0066cc;
-            text-decoration: none;
-        }
-        a:hover {
-            text-decoration: underline;
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
         }
         .export-btn {
-            margin-top: 10px;
-            padding: 8px 15px;
-            background-color: #28a745;
-            color: white;
+            background-color: #4CAF50;
             border: none;
+            color: white;
+            padding: 0.5rem 1rem;
             cursor: pointer;
-            font-weight: bold;
+            font-size: 1rem;
             border-radius: 4px;
         }
-        .export-container {
-            margin-bottom: 10px;
+        .export-btn:hover {
+            background-color: #45a049;
+        }
+        a {
+            text-decoration: none;
         }
     </style>
 </head>
 <body>
-    <h1>Panel de Control - Ferretería</h1>
+    <h1>Listado de Productos</h1>
 
-    <!-- Productos -->
-    <h2>Productos</h2>
-    <div class="export-container">
-        <a href="{{ url_for('crear_producto') }}"><button class="export-btn">Crear Producto</button></a>
-    </div>
+    <a href="{{ url_for('agregar_producto') }}">
+        <button class="export-btn">Crear Producto</button>
+    </a>
+
     <table>
         <thead>
             <tr>
-                <th>ID</th><th>Nombre</th><th>Descripción</th><th>Stock</th><th>Precio</th><th>Categoría</th><th>Acciones</th>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Descripción</th>
+                <th>Stock</th>
+                <th>Precio</th>
+                <th>Categoría</th>
+                <th>Acciones</th>
             </tr>
         </thead>
         <tbody>
@@ -72,156 +78,11 @@
                 <td>{{ p.categoria.nombre_categoria if p.categoria else 'Sin categoría' }}</td>
                 <td>
                     <a href="{{ url_for('editar_producto', id=p.id) }}">Editar</a> |
-                    <a href="{{ url_for('eliminar_producto', id=p.id) }}" onclick="return confirm('¿Eliminar este producto?')">Eliminar</a>
+                    <a href="{{ url_for('eliminar_producto', id=p.id) }}" onclick="return confirm('¿Estás seguro de eliminar este producto?')">Eliminar</a>
                 </td>
             </tr>
             {% else %}
             <tr><td colspan="7">No hay productos.</td></tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
-    <!-- Clientes -->
-    <h2>Clientes</h2>
-    <div class="export-container">
-        <a href="{{ url_for('crear_cliente') }}"><button class="export-btn">Crear Cliente</button></a>
-    </div>
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th><th>Nombre</th><th>Teléfono</th><th>Dirección</th><th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for c in clientes %}
-            <tr>
-                <td>{{ c.id }}</td>
-                <td>{{ c.nombre }}</td>
-                <td>{{ c.telefono }}</td>
-                <td>{{ c.direccion }}</td>
-                <td>
-                    <a href="{{ url_for('editar_cliente', id=c.id) }}">Editar</a> |
-                    <a href="{{ url_for('eliminar_cliente', id=c.id) }}" onclick="return confirm('¿Eliminar este cliente?')">Eliminar</a>
-                </td>
-            </tr>
-            {% else %}
-            <tr><td colspan="5">No hay clientes.</td></tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
-    <!-- Categorías -->
-    <h2>Categorías</h2>
-    <div class="export-container">
-        <a href="{{ url_for('crear_categoria') }}"><button class="export-btn">Crear Categoría</button></a>
-    </div>
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th><th>Nombre</th><th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for cat in categorias %}
-            <tr>
-                <td>{{ cat.id }}</td>
-                <td>{{ cat.nombre_categoria }}</td>
-                <td>
-                    <a href="{{ url_for('editar_categoria', id=cat.id) }}">Editar</a> |
-                    <a href="{{ url_for('eliminar_categoria', id=cat.id) }}" onclick="return confirm('¿Eliminar esta categoría?')">Eliminar</a>
-                </td>
-            </tr>
-            {% else %}
-            <tr><td colspan="3">No hay categorías.</td></tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
-    <!-- Usuarios -->
-    <h2>Usuarios</h2>
-    <div class="export-container">
-        <a href="{{ url_for('crear_usuario') }}"><button class="export-btn">Crear Usuario</button></a>
-    </div>
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th><th>Nombre de usuario</th><th>Correo</th><th>Rol</th><th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for u in usuarios %}
-            <tr>
-                <td>{{ u.id }}</td>
-                <td>{{ u.username }}</td>
-                <td>{{ u.email }}</td>
-                <td>{{ u.rol }}</td>
-                <td>
-                    <a href="{{ url_for('editar_usuario', id=u.id) }}">Editar</a> |
-                    <a href="{{ url_for('eliminar_usuario', id=u.id) }}" onclick="return confirm('¿Eliminar este usuario?')">Eliminar</a>
-                </td>
-            </tr>
-            {% else %}
-            <tr><td colspan="5">No hay usuarios.</td></tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
-    <!-- Ventas -->
-    <h2>Ventas</h2>
-    <div class="export-container">
-        <a href="{{ url_for('crear_venta') }}"><button class="export-btn">Registrar Venta</button></a>
-    </div>
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th><th>Fecha</th><th>Total</th><th>Cliente</th><th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for v in ventas %}
-            <tr>
-                <td>{{ v.id }}</td>
-                <td>{{ v.fecha }}</td>
-                <td>{{ "%.2f"|format(v.total) }}</td>
-                <td>{{ v.cliente.nombre if v.cliente else 'Desconocido' }}</td>
-                <td>
-                    <a href="{{ url_for('editar_venta', id=v.id) }}">Editar</a> |
-                    <a href="{{ url_for('eliminar_venta', id=v.id) }}" onclick="return confirm('¿Eliminar esta venta?')">Eliminar</a>
-                </td>
-            </tr>
-            {% else %}
-            <tr><td colspan="5">No hay ventas.</td></tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
-    <!-- Detalles de Ventas -->
-    <h2>Detalle de Ventas</h2>
-    <div class="export-container">
-        <a href="{{ url_for('crear_detalle') }}"><button class="export-btn">Agregar Detalle</button></a>
-    </div>
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th><th>Venta ID</th><th>Producto</th><th>Cantidad</th><th>Precio</th><th>Subtotal</th><th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for d in detalles %}
-            <tr>
-                <td>{{ d.id }}</td>
-                <td>{{ d.venta_id }}</td>
-                <td>{{ d.producto.nombre if d.producto else 'Desconocido' }}</td>
-                <td>{{ d.cantidad }}</td>
-                <td>{{ "%.2f"|format(d.precio) }}</td>
-                <td>{{ "%.2f"|format(d.cantidad * d.precio) }}</td>
-                <td>
-                    <a href="{{ url_for('editar_detalle', id=d.id) }}">Editar</a> |
-                    <a href="{{ url_for('eliminar_detalle', id=d.id) }}" onclick="return confirm('¿Eliminar este detalle?')">Eliminar</a>
-                </td>
-            </tr>
-            {% else %}
-            <tr><td colspan="7">No hay detalles.</td></tr>
             {% endfor %}
         </tbody>
     </table>
