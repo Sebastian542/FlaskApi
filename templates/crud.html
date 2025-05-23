@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ferretería - Panel Único</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container py-4">
+  <h1 class="text-center mb-4">🧰 Ferretería Aurum - Panel Único de Gestión</h1>
+
+  <!-- Productos -->
+  <div class="card mb-4">
+    <div class="card-header">Productos</div>
+    <div class="card-body">
+      <form action="/agregar_producto" method="post" class="row g-2">
+        <div class="col-md-2"><input name="nombre" class="form-control" placeholder="Nombre" required></div>
+        <div class="col-md-3"><input name="descripcion" class="form-control" placeholder="Descripción"></div>
+        <div class="col-md-1"><input name="stock" type="number" class="form-control" placeholder="Stock" required></div>
+        <div class="col-md-2"><input name="precio" type="number" step="0.01" class="form-control" placeholder="Precio" required></div>
+        <div class="col-md-2"><input name="id_categoria" type="number" class="form-control" placeholder="ID Categoría" required></div>
+        <div class="col-md-2"><button class="btn btn-primary w-100">Agregar</button></div>
+      </form>
+      <hr>
+      <ul class="list-group">
+        {% for p in productos %}
+        <li class="list-group-item">{{ p.nombre }} - {{ p.descripcion }} - ${{ p.precio }} (Stock: {{ p.stock }})</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <!-- Clientes -->
+  <div class="card mb-4">
+    <div class="card-header">Clientes</div>
+    <div class="card-body">
+      <form action="/agregar_cliente" method="post" class="row g-2">
+        <div class="col-md-3"><input name="nombre_completo" class="form-control" placeholder="Nombre completo" required></div>
+        <div class="col-md-2"><input name="telefono" class="form-control" placeholder="Teléfono"></div>
+        <div class="col-md-2"><input name="email" type="email" class="form-control" placeholder="Email"></div>
+        <div class="col-md-3"><input name="direccion" class="form-control" placeholder="Dirección"></div>
+        <div class="col-md-1"><input name="documento" type="number" class="form-control" placeholder="Documento"></div>
+        <div class="col-md-1"><input name="tipo_cliente_id" type="number" class="form-control" placeholder="Tipo ID"></div>
+        <div class="col-12"><button class="btn btn-success w-100">Registrar Cliente</button></div>
+      </form>
+      <hr>
+      <ul class="list-group">
+        {% for c in clientes %}
+        <li class="list-group-item">{{ c.nombre_completo }} - {{ c.email }} - Tel: {{ c.telefono }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <!-- Categorías -->
+  <div class="card mb-4">
+    <div class="card-header">Categorías</div>
+    <div class="card-body">
+      <form action="/agregar_categoria" method="post" class="row g-2">
+        <div class="col-md-10"><input name="nombre_categoria" class="form-control" placeholder="Nombre de la categoría" required></div>
+        <div class="col-md-2"><button class="btn btn-info w-100">Agregar</button></div>
+      </form>
+      <hr>
+      <ul class="list-group">
+        {% for cat in categorias %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <form action="/actualizar_categoria/{{ cat.id_categoria }}" method="post" class="d-flex w-100">
+            <input name="nombre_categoria" value="{{ cat.nombre_categoria }}" class="form-control me-2">
+            <button class="btn btn-sm btn-primary me-1">Actualizar</button>
+          </form>
+          <form action="/eliminar_categoria/{{ cat.id_categoria }}" method="post" onsubmit="return confirm('¿Eliminar esta categoría?')">
+            <button class="btn btn-sm btn-danger">Eliminar</button>
+          </form>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <!-- Facturas -->
+  <div class="card mb-4">
+    <div class="card-header">Facturas</div>
+    <div class="card-body">
+      <form action="/crear_factura" method="post" class="row g-2">
+        <div class="col-md-2"><input name="id_cliente" type="number" class="form-control" placeholder="ID Cliente" required></div>
+        <div class="col-md-2"><select name="metodo_pago" class="form-select" required>
+          <option value="">Método de Pago</option>
+          <option value="efectivo">Efectivo</option>
+          <option value="tarjeta">Tarjeta</option>
+          <option value="transferencia">Transferencia</option>
+        </select></div>
+        <div class="col-md-2"><input name="id_estado" type="number" class="form-control" placeholder="ID Estado" required></div>
+        <div class="col-md-3"><input name="total_facturas" type="number" step="0.01" class="form-control" placeholder="Total" required></div>
+        <div class="col-md-3"><button class="btn btn-warning w-100">Crear Factura</button></div>
+      </form>
+      <hr>
+      <ul class="list-group">
+        {% for f in facturas %}
+        <li class="list-group-item">Factura #{{ f.id_factura }} | Cliente: {{ f.id_cliente }} | Total: ${{ f.total_facturas }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <!-- Reseñas -->
+  <div class="card mb-4">
+    <div class="card-header">Reseñas</div>
+    <div class="card-body">
+      <form action="/agregar_resena" method="post" class="row g-2">
+        <div class="col-md-2"><input name="producto_id" type="number" class="form-control" placeholder="ID Producto" required></div>
+        <div class="col-md-2"><input name="cliente_id" type="number" class="form-control" placeholder="ID Cliente" required></div>
+        <div class="col-md-5"><input name="comentario" class="form-control" placeholder="Comentario" required></div>
+        <div class="col-md-2"><input name="puntuacion" type="number" class="form-control" min="1" max="5" placeholder="⭐" required></div>
+        <div class="col-md-1"><button class="btn btn-dark w-100">Enviar</button></div>
+      </form>
+      <hr>
+      <ul class="list-group">
+        {% for r in resenas %}
+        <li class="list-group-item">⭐ {{ r.puntuacion }} - {{ r.comentario }} (Prod: {{ r.producto_id }})</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <!-- Logs -->
+  <div class="card">
+    <div class="card-header">Logs del sistema</div>
+    <div class="card-body">
+      <ul class="list-group">
+        {% for l in logs %}
+        <li class="list-group-item">[{{ l.accion }}] {{ l.nombre or l.get("producto") or l.get("factura_id") }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+</body>
+</html>
