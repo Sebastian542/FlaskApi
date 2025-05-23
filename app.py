@@ -9,9 +9,10 @@ app = Flask(__name__)
 
 # MySQL Connection
 mysql_conn = mysql.connector.connect(
-    host="localhost",
+    host="dpg-d0obb9uuk2gs73ftusdg-a",
+    port="5432",
     user="root",
-    password="",  # Cambia esto según tu configuración
+    password="SVtoDZA0bt6Zuf3FF56Lfr6bFQsqdI74",  # Cambia esto según tu configuración
     database="ferreteria_mejorada"
 )
 mysql_cursor = mysql_conn.cursor(dictionary=True)
