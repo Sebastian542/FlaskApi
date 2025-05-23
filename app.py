@@ -1,56 +1,43 @@
-from flask import Flask, request, jsonify
+from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
+import os
 
 app = Flask(__name__)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = (
-    "postgresql://root:SVtoDZA0bt6Zuf3FF56Lfr6bFQsqdI74@"
-    "dpg-d0obb9uuk2gs73ftusdg-a.db.render.com:5432/ferreteria_mejorada"
+# Configuración de la base de datos desde variable de entorno
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv(
+    'DATABASE_URL',
+    'postgresql://root:SVtoDZA0bt6Zuf3FF56Lfr6bFQsqdI74@dpg-d0obb9uuk2gs73ftusdg-a:5432/ferreteria_mejorada'
 )
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
-class Producto(db.Model):
-    __tablename__ = 'productos'
-    id = db.Column(db.Integer, primary_key=True)
-    nombre = db.Column(db.String(100), nullable=False)
-    precio = db.Column(db.Float, nullable=False)
-    cantidad = db.Column(db.Integer, nullable=False)
-
-# Crear tablas inmediatamente al arrancar
-with app.app_context():
-    db.create_all()
-    print("Tablas creadas o ya existentes")
+from models import Producto  # Importar el modelo después de crear db
 
 @app.route('/')
 def index():
-    return "API de la ferretería funcionando!"
-
-@app.route('/productos', methods=['GET'])
-def listar_productos():
     productos = Producto.query.all()
-    resultado = []
-    for p in productos:
-        resultado.append({
-            'id': p.id,
-            'nombre': p.nombre,
-            'precio': p.precio,
-            'cantidad': p.cantidad
-        })
-    return jsonify(resultado)
+    return render_template('index.html', productos=productos)
 
-@app.route('/productos', methods=['POST'])
-def crear_producto():
-    data = request.json
-    nuevo_producto = Producto(
-        nombre=data['nombre'],
-        precio=data['precio'],
-        cantidad=data['cantidad']
-    )
-    db.session.add(nuevo_producto)
-    db.session.commit()
-    return jsonify({'mensaje': 'Producto creado', 'id': nuevo_producto.id}), 201
+@app.route('/add', methods=['POST'])
+def add_producto():
+    nombre = request.form.get('nombre')
+    precio = request.form.get('precio')
+
+    if nombre and precio:
+        nuevo_producto = Producto(nombre=nombre, precio=float(precio))
+        db.session.add(nuevo_producto)
+        db.session.commit()
+    return redirect(url_for('index'))
+
+@app.route('/delete/<int:id>', methods=['POST'])
+def delete_producto(id):
+    producto = Producto.query.get(id)
+    if producto:
+        db.session.delete(producto)
+        db.session.commit()
+    return redirect(url_for('index'))
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0')
+    app.run(debug=True)
