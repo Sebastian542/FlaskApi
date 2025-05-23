@@ -1,4 +1,4 @@
 flask
 gunicorn
 pymongo
-mysql
+mysql-connector-python
