@@ -1,10 +1,73 @@
 from flask import Flask, render_template, request, redirect
-from models import db, Producto, Cliente, Categoria, Factura, Resena, Log
-from config import Config
+from flask_sqlalchemy import SQLAlchemy
+
+# Conexion directa con psycopg2 (solo para prueba o tareas específicas)
+import psycopg2
+try:
+    conn = psycopg2.connect(
+        host="dpg-d0obb9uuk2gs73ftusdg-a.oregon-postgres.render.com",
+        port=5432,
+        database="ferreteria_mejorada",
+        user="root",
+        password="SVtoDZA0bt6Zuf3FF56Lfr6bFQsqdI74"
+    )
+    cur = conn.cursor()
+    cur.execute("SELECT version();")
+    print("✅ Conectado correctamente a PostgreSQL:", cur.fetchone())
+    cur.close()
+    conn.close()
+except Exception as e:
+    print("❌ Error al conectar con psycopg2:", e)
+
+# Configuración Flask + SQLAlchemy
+class Config:
+    SQLALCHEMY_DATABASE_URI = "postgresql://root:SVtoDZA0bt6Zuf3FF56Lfr6bFQsqdI74@dpg-d0obb9uuk2gs73ftusdg-a.oregon-postgres.render.com:5432/ferreteria_mejorada"
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 app = Flask(__name__)
 app.config.from_object(Config)
-db.init_app(app)
+db = SQLAlchemy(app)
+
+# Modelos
+class Producto(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(100))
+    descripcion = db.Column(db.String(200))
+    stock = db.Column(db.Integer)
+    precio = db.Column(db.Float)
+    id_categoria = db.Column(db.Integer, db.ForeignKey('categoria.id'))
+
+class Cliente(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    nombre_completo = db.Column(db.String(100))
+    telefono = db.Column(db.String(20))
+    email = db.Column(db.String(100))
+    direccion = db.Column(db.String(200))
+    documento = db.Column(db.String(50))
+    tipo_cliente_id = db.Column(db.Integer)
+
+class Categoria(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    nombre_categoria = db.Column(db.String(100))
+
+class Factura(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    id_cliente = db.Column(db.Integer, db.ForeignKey('cliente.id'))
+    metodo_pago = db.Column(db.String(50))
+    id_estado = db.Column(db.Integer)
+    total_facturas = db.Column(db.Float)
+
+class Resena(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    producto_id = db.Column(db.Integer, db.ForeignKey('producto.id'))
+    cliente_id = db.Column(db.Integer, db.ForeignKey('cliente.id'))
+    comentario = db.Column(db.String(300))
+    puntuacion = db.Column(db.Integer)
+
+class Log(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    accion = db.Column(db.String(100))
+    nombre = db.Column(db.String(100))
 
 @app.before_first_request
 def create_tables():
