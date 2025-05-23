@@ -1,43 +1,107 @@
-from flask import Flask, render_template, request, redirect, url_for
-from flask_sqlalchemy import SQLAlchemy
-import os
+from flask import Flask, request, jsonify
+from db import get_connection, init_db
 
 app = Flask(__name__)
 
-# Configuración de la base de datos desde variable de entorno
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv(
-    'DATABASE_URL',
-    'postgresql://root:SVtoDZA0bt6Zuf3FF56Lfr6bFQsqdI74@dpg-d0obb9uuk2gs73ftusdg-a:5432/ferreteria_mejorada'
-)
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# Crear tabla si no existe
+init_db()
 
-db = SQLAlchemy(app)
+@app.route('/productos', methods=['GET'])
+def listar_productos():
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM producto ORDER BY id;")
+    productos = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return jsonify(productos), 200
 
-from models import Producto  # Importar el modelo después de crear db
-
-@app.route('/')
-def index():
-    productos = Producto.query.all()
-    return render_template('index.html', productos=productos)
-
-@app.route('/add', methods=['POST'])
-def add_producto():
-    nombre = request.form.get('nombre')
-    precio = request.form.get('precio')
-
-    if nombre and precio:
-        nuevo_producto = Producto(nombre=nombre, precio=float(precio))
-        db.session.add(nuevo_producto)
-        db.session.commit()
-    return redirect(url_for('index'))
-
-@app.route('/delete/<int:id>', methods=['POST'])
-def delete_producto(id):
-    producto = Producto.query.get(id)
+@app.route('/productos/<int:id>', methods=['GET'])
+def obtener_producto(id):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM producto WHERE id = %s;", (id,))
+    producto = cursor.fetchone()
+    cursor.close()
+    conn.close()
     if producto:
-        db.session.delete(producto)
-        db.session.commit()
-    return redirect(url_for('index'))
+        return jsonify(producto), 200
+    else:
+        return jsonify({"error": "Producto no encontrado"}), 404
+
+@app.route('/productos', methods=['POST'])
+def crear_producto():
+    data = request.json
+    nombre = data.get('nombre')
+    descripcion = data.get('descripcion', '')
+    stock = data.get('stock')
+    precio = data.get('precio')
+    id_categoria = data.get('id_categoria')
+
+    if not nombre or stock is None or precio is None:
+        return jsonify({"error": "Faltan campos requeridos"}), 400
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO producto (nombre, descripcion, stock, precio, id_categoria)
+        VALUES (%s, %s, %s, %s, %s) RETURNING *;
+    """, (nombre, descripcion, stock, precio, id_categoria))
+    nuevo_producto = cursor.fetchone()
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return jsonify(nuevo_producto), 201
+
+@app.route('/productos/<int:id>', methods=['PUT'])
+def actualizar_producto(id):
+    data = request.json
+    nombre = data.get('nombre')
+    descripcion = data.get('descripcion')
+    stock = data.get('stock')
+    precio = data.get('precio')
+    id_categoria = data.get('id_categoria')
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM producto WHERE id = %s;", (id,))
+    producto_existente = cursor.fetchone()
+    if not producto_existente:
+        cursor.close()
+        conn.close()
+        return jsonify({"error": "Producto no encontrado"}), 404
+
+    cursor.execute("""
+        UPDATE producto
+        SET nombre=%s, descripcion=%s, stock=%s, precio=%s, id_categoria=%s
+        WHERE id=%s RETURNING *;
+    """, (nombre, descripcion, stock, precio, id_categoria, id))
+    producto_actualizado = cursor.fetchone()
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return jsonify(producto_actualizado), 200
+
+@app.route('/productos/<int:id>', methods=['DELETE'])
+def eliminar_producto(id):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM producto WHERE id = %s;", (id,))
+    producto_existente = cursor.fetchone()
+    if not producto_existente:
+        cursor.close()
+        conn.close()
+        return jsonify({"error": "Producto no encontrado"}), 404
+
+    cursor.execute("DELETE FROM producto WHERE id = %s;", (id,))
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return jsonify({"mensaje": "Producto eliminado correctamente"}), 200
+
 
 if __name__ == '__main__':
     app.run(debug=True)
