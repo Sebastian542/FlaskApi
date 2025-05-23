@@ -2,3 +2,4 @@ flask
 gunicorn
 pymongo
 psycopg2-binary
+Flask-SQLAlchemy
