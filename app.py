@@ -1,130 +1,101 @@
-# app.py
-from flask import Flask, render_template, request, redirect, url_for
-from pymongo import MongoClient
-import psycopg2
-from psycopg2.extras import RealDictCursor
-from bson.objectid import ObjectId
-from datetime import datetime
+from flask import Flask, render_template, request, redirect
+from models import db, Producto, Cliente, Categoria, Factura, Resena, Log
+from config import Config
 
 app = Flask(__name__)
+app.config.from_object(Config)
+db.init_app(app)
 
-# PostgreSQL Connection
-pg_conn = psycopg2.connect(
-    host="dpg-d0obb9uuk2gs73ftusdg-a",
-    port="5432",
-    user="root",
-    password="SVtoDZA0bt6Zuf3FF56Lfr6bFQsqdI74",
-    dbname="ferreteria_mejorada"
-)
-pg_cursor = pg_conn.cursor(cursor_factory=RealDictCursor)
+@app.before_first_request
+def create_tables():
+    db.create_all()
 
-# MongoDB Connection
-mongo_client = MongoClient("mongodb+srv://Hoyos:Sha*1028480099@ferreterialogs.i9tps73.mongodb.net/?retryWrites=true&w=majority&appName=FerreteriaLogs")
-mongo_db = mongo_client["ferreteria_logs"]
-logs_collection = mongo_db["logs_eventos"]
-resenas_collection = mongo_db["resenas"]
-
-@app.route("/")
+@app.route('/')
 def index():
-    pg_cursor.execute("SELECT * FROM productos")
-    productos = pg_cursor.fetchall()
+    return render_template("index.html",
+                           productos=Producto.query.all(),
+                           clientes=Cliente.query.all(),
+                           categorias=Categoria.query.all(),
+                           facturas=Factura.query.all(),
+                           resenas=Resena.query.all(),
+                           logs=Log.query.all())
 
-    pg_cursor.execute("SELECT * FROM clientes")
-    clientes = pg_cursor.fetchall()
-
-    pg_cursor.execute("SELECT * FROM categorias")
-    categorias = pg_cursor.fetchall()
-
-    pg_cursor.execute("SELECT * FROM facturas")
-    facturas = pg_cursor.fetchall()
-
-    logs = list(logs_collection.find())
-    for log in logs:
-        log["_id"] = str(log["_id"])
-
-    resenas = list(resenas_collection.find())
-    for resena in resenas:
-        resena["_id"] = str(resena["_id"])
-
-    return render_template("index.html", productos=productos, clientes=clientes, logs=logs, resenas=resenas, categorias=categorias, facturas=facturas)
-
-@app.route("/agregar_producto", methods=["POST"])
+@app.route('/agregar_producto', methods=['POST'])
 def agregar_producto():
-    datos = request.form
-    pg_cursor.execute("""
-        INSERT INTO productos (nombre, descripcion, stock, precio, id_categoria)
-        VALUES (%s, %s, %s, %s, %s)
-    """, (datos["nombre"], datos["descripcion"], datos["stock"], datos["precio"], datos["id_categoria"]))
-    pg_conn.commit()
-    logs_collection.insert_one({"accion": "crear_producto", "nombre": datos["nombre"]})
-    return redirect(url_for("index"))
+    p = Producto(
+        nombre=request.form['nombre'],
+        descripcion=request.form['descripcion'],
+        stock=request.form['stock'],
+        precio=request.form['precio'],
+        id_categoria=request.form['id_categoria']
+    )
+    db.session.add(p)
+    db.session.add(Log(accion='Nuevo producto', nombre=p.nombre))
+    db.session.commit()
+    return redirect('/')
 
-@app.route("/agregar_cliente", methods=["POST"])
+@app.route('/agregar_cliente', methods=['POST'])
 def agregar_cliente():
-    datos = request.form
-    pg_cursor.execute("""
-        INSERT INTO clientes (nombre_completo, telefono, email, direccion, documento, tipo_cliente_id)
-        VALUES (%s, %s, %s, %s, %s, %s)
-    """, (datos["nombre_completo"], datos["telefono"], datos["email"], datos["direccion"], datos["documento"], datos["tipo_cliente_id"]))
-    pg_conn.commit()
-    logs_collection.insert_one({"accion": "crear_cliente", "nombre": datos["nombre_completo"]})
-    return redirect(url_for("index"))
+    c = Cliente(
+        nombre_completo=request.form['nombre_completo'],
+        telefono=request.form['telefono'],
+        email=request.form['email'],
+        direccion=request.form['direccion'],
+        documento=request.form['documento'],
+        tipo_cliente_id=request.form['tipo_cliente_id']
+    )
+    db.session.add(c)
+    db.session.add(Log(accion='Nuevo cliente', nombre=c.nombre_completo))
+    db.session.commit()
+    return redirect('/')
 
-@app.route("/agregar_resena", methods=["POST"])
-def agregar_resena():
-    datos = request.form
-    resenas_collection.insert_one({
-        "producto_id": datos["producto_id"],
-        "cliente_id": datos["cliente_id"],
-        "comentario": datos["comentario"],
-        "puntuacion": int(datos["puntuacion"])
-    })
-    return redirect(url_for("index"))
-
-@app.route("/agregar_categoria", methods=["POST"])
+@app.route('/agregar_categoria', methods=['POST'])
 def agregar_categoria():
-    nombre = request.form["nombre_categoria"]
-    pg_cursor.execute("INSERT INTO categorias (nombre_categoria) VALUES (%s)", (nombre,))
-    pg_conn.commit()
-    logs_collection.insert_one({"accion": "crear_categoria", "nombre": nombre})
-    return redirect(url_for("index"))
+    cat = Categoria(nombre_categoria=request.form['nombre_categoria'])
+    db.session.add(cat)
+    db.session.add(Log(accion='Nueva categoría', nombre=cat.nombre_categoria))
+    db.session.commit()
+    return redirect('/')
 
-@app.route("/actualizar_categoria/<int:id>", methods=["POST"])
-def actualizar_categoria(id):
-    nombre = request.form["nombre_categoria"]
-    pg_cursor.execute("UPDATE categorias SET nombre_categoria = %s WHERE id_categoria = %s", (nombre, id))
-    pg_conn.commit()
-    logs_collection.insert_one({"accion": "editar_categoria", "id": id, "nombre": nombre})
-    return redirect(url_for("index"))
+@app.route('/actualizar_categoria/<int:id_categoria>', methods=['POST'])
+def actualizar_categoria(id_categoria):
+    cat = Categoria.query.get_or_404(id_categoria)
+    cat.nombre_categoria = request.form['nombre_categoria']
+    db.session.commit()
+    return redirect('/')
 
-@app.route("/eliminar_categoria/<int:id>", methods=["POST"])
-def eliminar_categoria(id):
-    pg_cursor.execute("DELETE FROM categorias WHERE id_categoria = %s", (id,))
-    pg_conn.commit()
-    logs_collection.insert_one({"accion": "eliminar_categoria", "id": id})
-    return redirect(url_for("index"))
+@app.route('/eliminar_categoria/<int:id_categoria>', methods=['POST'])
+def eliminar_categoria(id_categoria):
+    cat = Categoria.query.get_or_404(id_categoria)
+    db.session.delete(cat)
+    db.session.commit()
+    return redirect('/')
 
-@app.route("/crear_factura", methods=["POST"])
+@app.route('/crear_factura', methods=['POST'])
 def crear_factura():
-    datos = request.form
-    fecha = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    pg_cursor.execute("""
-        INSERT INTO facturas (id_cliente, fecha_factura, metodo_pago, id_estado, total_facturas)
-        VALUES (%s, %s, %s, %s, %s)
-    """, (datos["id_cliente"], fecha, datos["metodo_pago"], datos["id_estado"], datos["total_facturas"]))
-    pg_conn.commit()
-    logs_collection.insert_one({"accion": "crear_factura", "cliente_id": datos["id_cliente"], "total": datos["total_facturas"]})
-    return redirect(url_for("index"))
+    f = Factura(
+        id_cliente=request.form['id_cliente'],
+        metodo_pago=request.form['metodo_pago'],
+        id_estado=request.form['id_estado'],
+        total_facturas=request.form['total_facturas']
+    )
+    db.session.add(f)
+    db.session.add(Log(accion='Nueva factura', nombre=f"id_cliente: {f.id_cliente}"))
+    db.session.commit()
+    return redirect('/')
 
-@app.route("/actualizar_factura/<int:id>", methods=["POST"])
-def actualizar_factura(id):
-    datos = request.form
-    pg_cursor.execute("""
-        UPDATE facturas SET metodo_pago = %s, id_estado = %s, total_facturas = %s WHERE id_factura = %s
-    """, (datos["metodo_pago"], datos["id_estado"], datos["total_facturas"], id))
-    pg_conn.commit()
-    logs_collection.insert_one({"accion": "editar_factura", "factura_id": id})
-    return redirect(url_for("index"))
+@app.route('/agregar_resena', methods=['POST'])
+def agregar_resena():
+    r = Resena(
+        producto_id=request.form['producto_id'],
+        cliente_id=request.form['cliente_id'],
+        comentario=request.form['comentario'],
+        puntuacion=request.form['puntuacion']
+    )
+    db.session.add(r)
+    db.session.add(Log(accion='Nueva reseña', nombre=r.comentario))
+    db.session.commit()
+    return redirect('/')
 
 if __name__ == '__main__':
     app.run(debug=True)
