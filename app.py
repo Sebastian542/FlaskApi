@@ -1,10 +1,8 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
-from flask.signals import before_first_request
 
 app = Flask(__name__)
 
-# Configuración conexión a PostgreSQL en Render
 app.config['SQLALCHEMY_DATABASE_URI'] = (
     "postgresql://root:SVtoDZA0bt6Zuf3FF56Lfr6bFQsqdI74@"
     "dpg-d0obb9uuk2gs73ftusdg-a.db.render.com:5432/ferreteria_mejorada"
@@ -13,7 +11,6 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
-# Modelo ejemplo de Producto
 class Producto(db.Model):
     __tablename__ = 'productos'
     id = db.Column(db.Integer, primary_key=True)
@@ -21,14 +18,10 @@ class Producto(db.Model):
     precio = db.Column(db.Float, nullable=False)
     cantidad = db.Column(db.Integer, nullable=False)
 
-# Función para crear tablas al arrancar el servidor (si no existen)
-def crear_tablas():
-    with app.app_context():
-        db.create_all()
-        print("Tablas creadas o ya existentes")
-
-# Conectar la señal para correr antes de la primera petición
-before_first_request.connect(crear_tablas, app)
+# Crear tablas inmediatamente al arrancar
+with app.app_context():
+    db.create_all()
+    print("Tablas creadas o ya existentes")
 
 @app.route('/')
 def index():
