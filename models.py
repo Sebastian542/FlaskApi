@@ -1,39 +1,33 @@
-import psycopg2
+from db import get_connection
 
-def crear_tabla_producto():
-    try:
-        conexion = psycopg2.connect(
-            host="dpg-d0obb9uuk2gs73ftusdg-a",
-            database="ferreteria_mejorada",
-            user="root",
-            password="SVtoDZA0bt6Zuf3FF56Lfr6bFQsqdI74",
-            port=5432
-        )
-        cursor = conexion.cursor()
+def crear_tabla_productos():
+    query = """
+    CREATE TABLE IF NOT EXISTS productos (
+        id SERIAL PRIMARY KEY,
+        nombre VARCHAR(100) NOT NULL,
+        descripcion TEXT,
+        precio NUMERIC(10, 2) NOT NULL,
+        stock INTEGER NOT NULL
+    );
+    """
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(query)
+        conn.commit()
 
-        crear_tabla_sql = """
-        CREATE TABLE IF NOT EXISTS producto (
-            id SERIAL PRIMARY KEY,
-            nombre VARCHAR(100) NOT NULL,
-            descripcion TEXT,
-            stock INTEGER NOT NULL,
-            precio NUMERIC(10, 2) NOT NULL,
-            id_categoria INTEGER
-        );
-        """
+def insertar_producto(nombre, descripcion, precio, stock):
+    query = """
+    INSERT INTO productos (nombre, descripcion, precio, stock)
+    VALUES (%s, %s, %s, %s);
+    """
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(query, (nombre, descripcion, precio, stock))
+        conn.commit()
 
-        cursor.execute(crear_tabla_sql)
-        conexion.commit()
-        print("Tabla 'producto' creada correctamente (o ya existía).")
-
-    except psycopg2.Error as e:
-        print("Error creando la tabla:", e)
-
-    finally:
-        if cursor:
-            cursor.close()
-        if conexion:
-            conexion.close()
-
-if __name__ == "__main__":
-    crear_tabla_producto()
+def listar_productos():
+    query = "SELECT * FROM productos;"
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(query)
+            return cur.fetchall()
