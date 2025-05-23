@@ -1,10 +1,11 @@
 import psycopg2
 from psycopg2.extras import RealDictCursor
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, Response
+import json
 
 app = Flask(__name__)
 
-# Datos de conexión (se mantienen en variables globales para reusar)
+# Datos de conexión (no modificar)
 DB_PARAMS = {
     'host': "dpg-d0obb9uuk2gs73ftusdg-a.oregon-postgres.render.com",
     'port': 5432,
@@ -38,8 +39,6 @@ def index():
 
     cur.execute("SELECT * FROM clientes;")
     clientes = cur.fetchall()
-
-    # Puedes agregar otras consultas similares para facturas y reseñas
 
     cur.close()
     conn.close()
@@ -106,8 +105,39 @@ def agregar_cliente():
     conn.close()
     return redirect('/')
 
+# Ruta para exportar toda la base de datos en JSON
+@app.route('/exportar_json')
+def exportar_json():
+    conn = get_connection()
+    if not conn:
+        return "Error de conexión a la base de datos.", 500
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+
+    data = {}
+
+    # Categorías
+    cur.execute("SELECT * FROM categorias;")
+    data['categorias'] = cur.fetchall()
+
+    # Productos con nombre de categoría
+    cur.execute("SELECT p.*, c.nombre_categoria FROM productos p LEFT JOIN categorias c ON p.id_categoria = c.id;")
+    data['productos'] = cur.fetchall()
+
+    # Clientes
+    cur.execute("SELECT * FROM clientes;")
+    data['clientes'] = cur.fetchall()
+
+    cur.close()
+    conn.close()
+
+    json_data = json.dumps(data, default=str, indent=4)
+
+    return Response(json_data, mimetype='application/json', headers={
+        "Content-Disposition": "attachment;filename=ferreteria_export.json"
+    })
+
 if __name__ == '__main__':
-    # Solo imprime la versión para confirmar conexión al iniciar
+    # Prueba conexión al iniciar
     try:
         conn_test = get_connection()
         if conn_test:
