@@ -1,101 +1,63 @@
-from flask import Flask, render_template, request, redirect
-from models import db, Producto, Cliente, Categoria, Factura, Resena, Log
-from config import Config
+from flask import Flask, request, jsonify
+from flask_sqlalchemy import SQLAlchemy
+from flask.signals import before_first_request
 
 app = Flask(__name__)
-app.config.from_object(Config)
-db.init_app(app)
 
-@app.before_first_request
-def create_tables():
-    db.create_all()
+# Configuración conexión a PostgreSQL en Render
+app.config['SQLALCHEMY_DATABASE_URI'] = (
+    "postgresql://root:SVtoDZA0bt6Zuf3FF56Lfr6bFQsqdI74@"
+    "dpg-d0obb9uuk2gs73ftusdg-a.db.render.com:5432/ferreteria_mejorada"
+)
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db = SQLAlchemy(app)
+
+# Modelo ejemplo de Producto
+class Producto(db.Model):
+    __tablename__ = 'productos'
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(100), nullable=False)
+    precio = db.Column(db.Float, nullable=False)
+    cantidad = db.Column(db.Integer, nullable=False)
+
+# Función para crear tablas al arrancar el servidor (si no existen)
+def crear_tablas():
+    with app.app_context():
+        db.create_all()
+        print("Tablas creadas o ya existentes")
+
+# Conectar la señal para correr antes de la primera petición
+before_first_request.connect(crear_tablas, app)
 
 @app.route('/')
 def index():
-    return render_template("index.html",
-                           productos=Producto.query.all(),
-                           clientes=Cliente.query.all(),
-                           categorias=Categoria.query.all(),
-                           facturas=Factura.query.all(),
-                           resenas=Resena.query.all(),
-                           logs=Log.query.all())
+    return "API de la ferretería funcionando!"
 
-@app.route('/agregar_producto', methods=['POST'])
-def agregar_producto():
-    p = Producto(
-        nombre=request.form['nombre'],
-        descripcion=request.form['descripcion'],
-        stock=request.form['stock'],
-        precio=request.form['precio'],
-        id_categoria=request.form['id_categoria']
+@app.route('/productos', methods=['GET'])
+def listar_productos():
+    productos = Producto.query.all()
+    resultado = []
+    for p in productos:
+        resultado.append({
+            'id': p.id,
+            'nombre': p.nombre,
+            'precio': p.precio,
+            'cantidad': p.cantidad
+        })
+    return jsonify(resultado)
+
+@app.route('/productos', methods=['POST'])
+def crear_producto():
+    data = request.json
+    nuevo_producto = Producto(
+        nombre=data['nombre'],
+        precio=data['precio'],
+        cantidad=data['cantidad']
     )
-    db.session.add(p)
-    db.session.add(Log(accion='Nuevo producto', nombre=p.nombre))
+    db.session.add(nuevo_producto)
     db.session.commit()
-    return redirect('/')
-
-@app.route('/agregar_cliente', methods=['POST'])
-def agregar_cliente():
-    c = Cliente(
-        nombre_completo=request.form['nombre_completo'],
-        telefono=request.form['telefono'],
-        email=request.form['email'],
-        direccion=request.form['direccion'],
-        documento=request.form['documento'],
-        tipo_cliente_id=request.form['tipo_cliente_id']
-    )
-    db.session.add(c)
-    db.session.add(Log(accion='Nuevo cliente', nombre=c.nombre_completo))
-    db.session.commit()
-    return redirect('/')
-
-@app.route('/agregar_categoria', methods=['POST'])
-def agregar_categoria():
-    cat = Categoria(nombre_categoria=request.form['nombre_categoria'])
-    db.session.add(cat)
-    db.session.add(Log(accion='Nueva categoría', nombre=cat.nombre_categoria))
-    db.session.commit()
-    return redirect('/')
-
-@app.route('/actualizar_categoria/<int:id_categoria>', methods=['POST'])
-def actualizar_categoria(id_categoria):
-    cat = Categoria.query.get_or_404(id_categoria)
-    cat.nombre_categoria = request.form['nombre_categoria']
-    db.session.commit()
-    return redirect('/')
-
-@app.route('/eliminar_categoria/<int:id_categoria>', methods=['POST'])
-def eliminar_categoria(id_categoria):
-    cat = Categoria.query.get_or_404(id_categoria)
-    db.session.delete(cat)
-    db.session.commit()
-    return redirect('/')
-
-@app.route('/crear_factura', methods=['POST'])
-def crear_factura():
-    f = Factura(
-        id_cliente=request.form['id_cliente'],
-        metodo_pago=request.form['metodo_pago'],
-        id_estado=request.form['id_estado'],
-        total_facturas=request.form['total_facturas']
-    )
-    db.session.add(f)
-    db.session.add(Log(accion='Nueva factura', nombre=f"id_cliente: {f.id_cliente}"))
-    db.session.commit()
-    return redirect('/')
-
-@app.route('/agregar_resena', methods=['POST'])
-def agregar_resena():
-    r = Resena(
-        producto_id=request.form['producto_id'],
-        cliente_id=request.form['cliente_id'],
-        comentario=request.form['comentario'],
-        puntuacion=request.form['puntuacion']
-    )
-    db.session.add(r)
-    db.session.add(Log(accion='Nueva reseña', nombre=r.comentario))
-    db.session.commit()
-    return redirect('/')
+    return jsonify({'mensaje': 'Producto creado', 'id': nuevo_producto.id}), 201
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0')
