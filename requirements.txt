@@ -1,4 +1,4 @@
 flask
 gunicorn
 pymongo
-mysql-connector-python
+psycopg2-binary
