@@ -1,13 +1,39 @@
-from app import db
+import psycopg2
 
+def crear_tabla_producto():
+    try:
+        conexion = psycopg2.connect(
+            host="dpg-d0obb9uuk2gs73ftusdg-a",
+            database="ferreteria_mejorada",
+            user="root",
+            password="SVtoDZA0bt6Zuf3FF56Lfr6bFQsqdI74",
+            port=5432
+        )
+        cursor = conexion.cursor()
 
-class Producto(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    nombre = db.Column(db.String(100), nullable=False)
-    descripcion = db.Column(db.String(255))
-    stock = db.Column(db.Integer, nullable=False)
-    precio = db.Column(db.Float, nullable=False)
-    id_categoria = db.Column(db.Integer, db.ForeignKey('categoria.id_categoria'))
-    def __repr__(self):
-        return f'<Producto {self.nombre}>'
+        crear_tabla_sql = """
+        CREATE TABLE IF NOT EXISTS producto (
+            id SERIAL PRIMARY KEY,
+            nombre VARCHAR(100) NOT NULL,
+            descripcion TEXT,
+            stock INTEGER NOT NULL,
+            precio NUMERIC(10, 2) NOT NULL,
+            id_categoria INTEGER
+        );
+        """
 
+        cursor.execute(crear_tabla_sql)
+        conexion.commit()
+        print("Tabla 'producto' creada correctamente (o ya existía).")
+
+    except psycopg2.Error as e:
+        print("Error creando la tabla:", e)
+
+    finally:
+        if cursor:
+            cursor.close()
+        if conexion:
+            conexion.close()
+
+if __name__ == "__main__":
+    crear_tabla_producto()
