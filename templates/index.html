@@ -1,131 +1,441 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8" />
-    <title>Ferretería - Gestión</title>
-    <style>
-        /* Reset básico */
-        * {
-            box-sizing: border-box;
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f7f9fc;
-            margin: 0;
-            padding: 20px 40px;
-            color: #333;
-            min-height: 100vh;
-        }
-        h1, h2, h3 {
-            color: #2c3e50;
-            margin-bottom: 12px;
-        }
-        h1 {
-            font-size: 2.8rem;
-            margin-bottom: 30px;
-            font-weight: 700;
-            text-align: center;
-        }
-        /* Botón exportar JSON */
-        form.export-form {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-        button.export-btn {
-            background-color: #27ae60;
-            border: none;
-            color: white;
-            padding: 14px 28px;
-            font-size: 18px;
-            font-weight: 600;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-            box-shadow: 0 4px 8px rgb(39 174 96 / 0.3);
-        }
-        button.export-btn:hover {
-            background-color: #219150;
-            box-shadow: 0 6px 12px rgb(33 145 80 / 0.5);
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ferretería - CRUD Completo</title>
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+</head>
+<body>
+  <div class="container my-4">
+    <h1 class="mb-4 text-center">Gestión Completa Ferretería</h1>
 
-        /* Tablas estilizadas */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 35px;
-            box-shadow: 0 0 10px rgb(0 0 0 / 0.08);
-            background: white;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-        thead tr {
-            background-color: #34495e;
-            color: #ecf0f1;
-            text-align: left;
-            font-weight: 600;
-        }
-        th, td {
-            padding: 14px 18px;
-            border-bottom: 1px solid #ddd;
-            vertical-align: middle;
-        }
-        tbody tr:hover {
-            background-color: #f1f6f9;
-        }
-        tbody tr:last-child td {
-            border-bottom: none;
-        }
-        /* Botones acciones */
-        .btn-accion {
-            padding: 6px 12px;
-            margin: 0 3px;
-            border-radius: 4px;
-            border: none;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.9rem;
-            transition: background-color 0.25s ease;
-        }
-        .btn-modificar {
-            background-color: #2980b9;
-            color: white;
-        }
-        .btn-modificar:hover {
-            background-color: #1f5f8b;
-        }
-        .btn-eliminar {
-            background-color: #c0392b;
-            color: white;
-        }
-        .btn-eliminar:hover {
-            background-color: #962d22;
-        }
-        /* Formulario */
-        form {
-            background: white;
-            padding: 20px 25px;
-            margin-bottom: 50px;
-            box-shadow: 0 2px 10px rgb(0 0 0 / 0.05);
-            border-radius: 8px;
-            max-width: 600px;
-        }
-        form h3 {
-            margin-top: 0;
-            margin-bottom: 18px;
-            font-weight: 700;
-            color: #34495e;
-        }
-        form input[type="text"],
-        form input[type="email"],
-        form input[type="number"],
-        form select {
-            width: 100%;
-            padding: 10px 14px;
-            margin-bottom: 15px;
-            border: 1.5px solid #ccc;
-            border-radius: 6px;
-            font-size: 1rem;
-            transition: border-color 0.3s ease;
-        }
-        form input[type="text"]:focus,
-        form input[type="email"]:focus,
+    <!-- Exportar JSON -->
+    <div class="mb-4 text-end">
+      <a href="{{ url_for('exportar_json') }}" class="btn btn-outline-primary">
+        Exportar Base de Datos JSON
+      </a>
+    </div>
+
+    <!-- --- CATEGORÍAS --- -->
+    <div class="card mb-5 shadow-sm">
+      <div class="card-header bg-primary text-white">
+        <h3>Categorías</h3>
+      </div>
+      <div class="card-body">
+        <!-- Formulario Agregar -->
+        <form
+          action="{{ url_for('agregar_categoria') }}"
+          method="POST"
+          class="row g-3 mb-3"
+        >
+          <div class="col-md-10">
+            <input
+              type="text"
+              name="nombre_categoria"
+              placeholder="Nueva categoría"
+              class="form-control"
+              required
+            />
+          </div>
+          <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">Agregar</button>
+          </div>
+        </form>
+
+        <!-- Tabla Categorías -->
+        <table class="table table-striped table-bordered align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>ID</th>
+              <th>Nombre Categoría</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for categoria in categorias %}
+            <tr>
+              <td>{{ categoria.id }}</td>
+              <td>
+                <form
+                  action="{{ url_for('editar_categoria', id=categoria.id) }}"
+                  method="POST"
+                  class="d-flex"
+                >
+                  <input
+                    type="text"
+                    name="nombre_categoria"
+                    value="{{ categoria.nombre_categoria }}"
+                    class="form-control me-2"
+                    required
+                  />
+                  <button type="submit" class="btn btn-success btn-sm">
+                    Guardar
+                  </button>
+                </form>
+              </td>
+              <td>
+                <form
+                  action="{{ url_for('eliminar_categoria', id=categoria.id) }}"
+                  method="POST"
+                  onsubmit="return confirm('¿Eliminar categoría?')"
+                >
+                  <button type="submit" class="btn btn-danger btn-sm">
+                    Eliminar
+                  </button>
+                </form>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="3" class="text-center">No hay categorías.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- --- PRODUCTOS --- -->
+    <div class="card mb-5 shadow-sm">
+      <div class="card-header bg-success text-white">
+        <h3>Productos</h3>
+      </div>
+      <div class="card-body">
+        <!-- Formulario Agregar Producto -->
+        <form
+          action="{{ url_for('agregar_producto') }}"
+          method="POST"
+          class="row g-3 mb-3"
+        >
+          <div class="col-md-3">
+            <input
+              type="text"
+              name="nombre"
+              placeholder="Nombre producto"
+              class="form-control"
+              required
+            />
+          </div>
+          <div class="col-md-3">
+            <input
+              type="text"
+              name="descripcion"
+              placeholder="Descripción"
+              class="form-control"
+            />
+          </div>
+          <div class="col-md-1">
+            <input
+              type="number"
+              name="stock"
+              min="0"
+              placeholder="Stock"
+              class="form-control"
+              required
+            />
+          </div>
+          <div class="col-md-2">
+            <input
+              type="number"
+              step="0.01"
+              name="precio"
+              min="0"
+              placeholder="Precio"
+              class="form-control"
+              required
+            />
+          </div>
+          <div class="col-md-2">
+            <select name="id_categoria" class="form-select" required>
+              <option value="" disabled selected>Seleccionar categoría</option>
+              {% for categoria in categorias %}
+              <option value="{{ categoria.id }}">{{ categoria.nombre_categoria }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-1">
+            <button type="submit" class="btn btn-success w-100">Agregar</button>
+          </div>
+        </form>
+
+        <!-- Tabla Productos -->
+        <table class="table table-striped table-bordered align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>ID</th>
+              <th>Nombre</th>
+              <th>Descripción</th>
+              <th>Stock</th>
+              <th>Precio</th>
+              <th>Categoría</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in productos %}
+            <tr>
+              <form
+                action="{{ url_for('editar_producto', id=p.id) }}"
+                method="POST"
+                class="d-flex"
+              >
+                <td>{{ p.id }}</td>
+                <td>
+                  <input
+                    type="text"
+                    name="nombre"
+                    value="{{ p.nombre }}"
+                    class="form-control form-control-sm"
+                    required
+                  />
+                </td>
+                <td>
+                  <input
+                    type="text"
+                    name="descripcion"
+                    value="{{ p.descripcion }}"
+                    class="form-control form-control-sm"
+                  />
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    name="stock"
+                    min="0"
+                    value="{{ p.stock }}"
+                    class="form-control form-control-sm"
+                    required
+                  />
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    step="0.01"
+                    name="precio"
+                    min="0"
+                    value="{{ p.precio }}"
+                    class="form-control form-control-sm"
+                    required
+                  />
+                </td>
+                <td>
+                  <select
+                    name="id_categoria"
+                    class="form-select form-select-sm"
+                    required
+                  >
+                    {% for categoria in categorias %}
+                    <option
+                      value="{{ categoria.id }}"
+                      {% if p.id_categoria == categoria.id %}selected{% endif %}
+                    >
+                      {{ categoria.nombre_categoria }}
+                    </option>
+                    {% endfor %}
+                  </select>
+                </td>
+                <td class="d-flex gap-1">
+                  <button type="submit" class="btn btn-success btn-sm">
+                    Guardar
+                  </button>
+              </form>
+              <form
+                action="{{ url_for('eliminar_producto', id=p.id) }}"
+                method="POST"
+                onsubmit="return confirm('¿Eliminar producto?')"
+              >
+                <button type="submit" class="btn btn-danger btn-sm">
+                  Eliminar
+                </button>
+              </form>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="7" class="text-center">No hay productos.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- --- CLIENTES --- -->
+    <div class="card mb-5 shadow-sm">
+      <div class="card-header bg-info text-white">
+        <h3>Clientes</h3>
+      </div>
+      <div class="card-body">
+        <!-- Formulario Agregar Cliente -->
+        <form
+          action="{{ url_for('agregar_cliente') }}"
+          method="POST"
+          class="row g-3 mb-3"
+        >
+          <div class="col-md-3">
+            <input
+              type="text"
+              name="nombre_completo"
+              placeholder="Nombre completo"
+              class="form-control"
+              required
+            />
+          </div>
+          <div class="col-md-2">
+            <input
+              type="text"
+              name="telefono"
+              placeholder="Teléfono"
+              class="form-control"
+            />
+          </div>
+          <div class="col-md-3">
+            <input
+              type="email"
+              name="email"
+              placeholder="Email"
+              class="form-control"
+            />
+          </div>
+          <div class="col-md-2">
+            <input
+              type="text"
+              name="direccion"
+              placeholder="Dirección"
+              class="form-control"
+            />
+          </div>
+          <div class="col-md-2">
+            <input
+              type="text"
+              name="documento"
+              placeholder="Documento"
+              class="form-control"
+            />
+          </div>
+          <div class="col-md-2">
+            <select name="tipo_cliente_id" class="form-select">
+              <option value="" selected>Tipo Cliente</option>
+              {% for tipo in tipos_cliente %}
+              <option value="{{ tipo.id }}">{{ tipo.descripcion }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-1">
+            <button type="submit" class="btn btn-info w-100">Agregar</button>
+          </div>
+        </form>
+
+        <!-- Tabla Clientes -->
+        <table class="table table-striped table-bordered align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>ID</th>
+              <th>Nombre completo</th>
+              <th>Teléfono</th>
+              <th>Email</th>
+              <th>Dirección</th>
+              <th>Documento</th>
+              <th>Tipo Cliente</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in clientes %}
+            <tr>
+              <form
+                action="{{ url_for('editar_cliente', id=c.id) }}"
+                method="POST"
+                class="d-flex"
+              >
+                <td>{{ c.id }}</td>
+                <td>
+                  <input
+                    type="text"
+                    name="nombre_completo"
+                    value="{{ c.nombre_completo }}"
+                    class="form-control form-control-sm"
+                    required
+                  />
+                </td>
+                <td>
+                  <input
+                    type="text"
+                    name="telefono"
+                    value="{{ c.telefono }}"
+                    class="form-control form-control-sm"
+                  />
+                </td>
+                <td>
+                  <input
+                    type="email"
+                    name="email"
+                    value="{{ c.email }}"
+                    class="form-control form-control-sm"
+                  />
+                </td>
+                <td>
+                  <input
+                    type="text"
+                    name="direccion"
+                    value="{{ c.direccion }}"
+                    class="form-control form-control-sm"
+                  />
+                </td>
+                <td>
+                  <input
+                    type="text"
+                    name="documento"
+                    value="{{ c.documento }}"
+                    class="form-control form-control-sm"
+                  />
+                </td>
+                <td>
+                  <select name="tipo_cliente_id" class="form-select form-select-sm">
+                    <option value="">Ninguno</option>
+                    {% for tipo in tipos_cliente %}
+                    <option
+                      value="{{ tipo.id }}"
+                      {% if c.tipo_cliente_id == tipo.id %}selected{% endif %}
+                    >
+                      {{ tipo.descripcion }}
+                    </option>
+                    {% endfor %}
+                  </select>
+                </td>
+                <td class="d-flex gap-1">
+                  <button type="submit" class="btn btn-info btn-sm">
+                    Guardar
+                  </button>
+              </form>
+              <form
+                action="{{ url_for('eliminar_cliente', id=c.id) }}"
+                method="POST"
+                onsubmit="return confirm('¿Eliminar cliente?')"
+              >
+                <button type="submit" class="btn btn-danger btn-sm">
+                  Eliminar
+                </button>
+              </form>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="8" class="text-center">No hay clientes.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+  ></script>
+</body>
+</html>
