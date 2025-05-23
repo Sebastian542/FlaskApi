@@ -2,128 +2,324 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8" />
-    <title>Ferretería Mejorada</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ferretería - Dashboard</title>
     <style>
-        /* mismo estilo que antes */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            background-color: #f5f7fa;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+            background-color: #fff;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+        }
+        thead {
+            background-color: #34495e;
+            color: #ecf0f1;
+            font-weight: bold;
+        }
+        tbody tr:nth-child(even) {
+            background-color: #f2f4f7;
+        }
+        tbody tr:hover {
+            background-color: #dceefb;
+        }
+        section {
+            margin-bottom: 50px;
+        }
+        section h2 {
+            border-bottom: 2px solid #2980b9;
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+            color: #2980b9;
+        }
+        /* Scroll horizontal en tablas pequeñas si es necesario */
+        .table-wrapper {
+            overflow-x: auto;
+        }
+        button.export-btn {
+            background-color: #2980b9;
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+        }
+        button.export-btn:hover {
+            background-color: #1c5980;
+        }
+        .export-container {
+            margin-bottom: 40px;
+            text-align: right;
+        }
     </style>
 </head>
 <body>
+    <div class="container">
+        <h1>Panel de Control - Ferretería</h1>
 
-    <h1>Ferretería Mejorada</h1>
+        <!-- Productos -->
+        <section>
+            <h2>Productos</h2>
+            <div class="table-wrapper">
+                <table id="table-productos">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Descripción</th>
+                            <th>Stock</th>
+                            <th>Precio</th>
+                            <th>Categoría</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in productos %}
+                        <tr>
+                            <td>{{ p.id }}</td>
+                            <td>{{ p.nombre }}</td>
+                            <td>{{ p.descripcion }}</td>
+                            <td>{{ p.stock }}</td>
+                            <td>{{ "%.2f"|format(p.precio) }}</td>
+                            <td>{{ p.categoria.nombre_categoria if p.categoria else 'Sin categoría' }}</td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="6">No hay productos.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="export-container">
+                <button class="export-btn" onclick="exportTableToJson('table-productos', 'productos.json')">Exportar JSON</button>
+            </div>
+        </section>
 
-    <div class="section">
-        <form action="/agregar_categoria" method="post">
-            <h2>Agregar Categoría</h2>
-            <label>Nombre Categoría</label>
-            <input type="text" name="nombre_categoria" required />
-            <button type="submit">Agregar Categoría</button>
-        </form>
+        <!-- Clientes -->
+        <section>
+            <h2>Clientes</h2>
+            <div class="table-wrapper">
+                <table id="table-clientes">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre Completo</th>
+                            <th>Teléfono</th>
+                            <th>Email</th>
+                            <th>Dirección</th>
+                            <th>Documento</th>
+                            <th>Tipo Cliente ID</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in clientes %}
+                        <tr>
+                            <td>{{ c.id }}</td>
+                            <td>{{ c.nombre_completo }}</td>
+                            <td>{{ c.telefono }}</td>
+                            <td>{{ c.email }}</td>
+                            <td>{{ c.direccion }}</td>
+                            <td>{{ c.documento }}</td>
+                            <td>{{ c.tipo_cliente_id }}</td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="7">No hay clientes.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="export-container">
+                <button class="export-btn" onclick="exportTableToJson('table-clientes', 'clientes.json')">Exportar JSON</button>
+            </div>
+        </section>
 
-        <h2>Lista de Categorías</h2>
-        <table>
-            <thead>
-                <tr><th>ID</th><th>Nombre Categoría</th></tr>
-            </thead>
-            <tbody>
-                {% for cat in categorias %}
-                <tr>
-                    <td>{{ cat.id }}</td>
-                    <td>{{ cat.nombre_categoria }}</td>
-                </tr>
-                {% else %}
-                <tr><td colspan="2">No hay categorías.</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <!-- Categorías -->
+        <section>
+            <h2>Categorías</h2>
+            <div class="table-wrapper">
+                <table id="table-categorias">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre Categoría</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cat in categorias %}
+                        <tr>
+                            <td>{{ cat.id }}</td>
+                            <td>{{ cat.nombre_categoria }}</td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="2">No hay categorías.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="export-container">
+                <button class="export-btn" onclick="exportTableToJson('table-categorias', 'categorias.json')">Exportar JSON</button>
+            </div>
+        </section>
+
+        <!-- Facturas -->
+        <section>
+            <h2>Facturas</h2>
+            <div class="table-wrapper">
+                <table id="table-facturas">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>ID Cliente</th>
+                            <th>Método de Pago</th>
+                            <th>ID Estado</th>
+                            <th>Total Facturas</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for f in facturas %}
+                        <tr>
+                            <td>{{ f.id }}</td>
+                            <td>{{ f.id_cliente }}</td>
+                            <td>{{ f.metodo_pago }}</td>
+                            <td>{{ f.id_estado }}</td>
+                            <td>{{ "%.2f"|format(f.total_facturas) }}</td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="5">No hay facturas.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="export-container">
+                <button class="export-btn" onclick="exportTableToJson('table-facturas', 'facturas.json')">Exportar JSON</button>
+            </div>
+        </section>
+
+        <!-- Reseñas -->
+        <section>
+            <h2>Reseñas</h2>
+            <div class="table-wrapper">
+                <table id="table-resenas">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>ID Producto</th>
+                            <th>ID Cliente</th>
+                            <th>Comentario</th>
+                            <th>Puntuación</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in resenas %}
+                        <tr>
+                            <td>{{ r.id }}</td>
+                            <td>{{ r.producto_id }}</td>
+                            <td>{{ r.cliente_id }}</td>
+                            <td>{{ r.comentario }}</td>
+                            <td>{{ r.puntuacion }}</td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="5">No hay reseñas.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="export-container">
+                <button class="export-btn" onclick="exportTableToJson('table-resenas', 'resenas.json')">Exportar JSON</button>
+            </div>
+        </section>
+
+        <!-- Logs -->
+        <section>
+            <h2>Logs</h2>
+            <div class="table-wrapper">
+                <table id="table-logs">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Acción</th>
+                            <th>Nombre</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for l in logs %}
+                        <tr>
+                            <td>{{ l.id }}</td>
+                            <td>{{ l.accion }}</td>
+                            <td>{{ l.nombre }}</td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="3">No hay logs.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="export-container">
+                <button class="export-btn" onclick="exportTableToJson('table-logs', 'logs.json')">Exportar JSON</button>
+            </div>
+        </section>
+
     </div>
 
-    <div class="section">
-        <form action="/agregar_producto" method="post">
-            <h2>Agregar Producto</h2>
-            <label>Nombre</label>
-            <input type="text" name="nombre" required />
-            <label>Descripción</label>
-            <textarea name="descripcion" rows="2"></textarea>
-            <label>Stock</label>
-            <input type="number" name="stock" min="0" required />
-            <label>Precio</label>
-            <input type="number" step="0.01" name="precio" min="0" required />
-            <label>Categoría</label>
-            <select name="id_categoria" required>
-                <option value="">--Seleccione--</option>
-                {% for categoria in categorias %}
-                    <option value="{{ categoria.id }}">{{ categoria.nombre_categoria }}</option>
-                {% endfor %}
-            </select>
-            <button type="submit">Agregar Producto</button>
-        </form>
+    <script>
+        // Función para exportar la tabla a JSON
+        function exportTableToJson(tableId, filename) {
+            const table = document.getElementById(tableId);
+            const headers = [];
+            const data = [];
 
-        <h2>Lista de Productos</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th><th>Nombre</th><th>Descripción</th><th>Stock</th><th>Precio</th><th>Categoría</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for p in productos %}
-                <tr>
-                    <td>{{ p.id }}</td>
-                    <td>{{ p.nombre }}</td>
-                    <td>{{ p.descripcion }}</td>
-                    <td>{{ p.stock }}</td>
-                    <td>{{ "%.2f"|format(p.precio) }}</td>
-                    <td>{{ p.nombre_categoria if p.nombre_categoria else 'N/A' }}</td>
-                </tr>
-                {% else %}
-                <tr><td colspan="6">No hay productos.</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+            // Obtener headers
+            for (let th of table.querySelectorAll('thead th')) {
+                headers.push(th.innerText.trim());
+            }
 
-    <div class="section">
-        <form action="/agregar_cliente" method="post">
-            <h2>Agregar Cliente</h2>
-            <label>Nombre Completo</label>
-            <input type="text" name="nombre_completo" required />
-            <label>Teléfono</label>
-            <input type="text" name="telefono" />
-            <label>Email</label>
-            <input type="email" name="email" />
-            <label>Dirección</label>
-            <input type="text" name="direccion" />
-            <label>Documento</label>
-            <input type="text" name="documento" />
-            <label>Tipo Cliente (ID)</label>
-            <input type="number" name="tipo_cliente_id" />
-            <button type="submit">Agregar Cliente</button>
-        </form>
+            // Obtener filas
+            for (let row of table.querySelectorAll('tbody tr')) {
+                // Evitar filas vacías o mensajes de "No hay..."
+                if (row.querySelector('td[colspan]')) continue;
 
-        <h2>Lista de Clientes</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th><th>Nombre Completo</th><th>Teléfono</th><th>Email</th><th>Dirección</th><th>Documento</th><th>Tipo Cliente</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for c in clientes %}
-                <tr>
-                    <td>{{ c.id }}</td>
-                    <td>{{ c.nombre_completo }}</td>
-                    <td>{{ c.telefono }}</td>
-                    <td>{{ c.email }}</td>
-                    <td>{{ c.direccion }}</td>
-                    <td>{{ c.documento }}</td>
-                    <td>{{ c.tipo_cliente_id }}</td>
-                </tr>
-                {% else %}
-                <tr><td colspan="7">No hay clientes.</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+                const rowData = {};
+                const cells = row.querySelectorAll('td');
+                cells.forEach((cell, index) => {
+                    rowData[headers[index]] = cell.innerText.trim();
+                });
+                data.push(rowData);
+            }
+
+            const jsonStr = JSON.stringify(data, null, 2);
+            const blob = new Blob([jsonStr], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
 
 </body>
 </html>
