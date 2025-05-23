@@ -1,325 +1,229 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Ferretería - Dashboard</title>
+    <meta charset="UTF-8">
+    <title>Panel de Control - Ferretería</title>
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: Arial, sans-serif;
             margin: 20px;
-            background-color: #f5f7fa;
+        }
+        h2 {
+            margin-top: 40px;
             color: #333;
-        }
-        h1 {
-            text-align: center;
-            color: #2c3e50;
-            margin-bottom: 30px;
-        }
-        .container {
-            max-width: 1200px;
-            margin: auto;
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 10px;
-            background-color: #fff;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-            border-radius: 6px;
-            overflow: hidden;
+            margin-top: 10px;
         }
         th, td {
-            padding: 12px 15px;
+            padding: 10px;
+            border: 1px solid #aaa;
             text-align: left;
         }
-        thead {
-            background-color: #34495e;
-            color: #ecf0f1;
-            font-weight: bold;
+        th {
+            background-color: #eee;
         }
-        tbody tr:nth-child(even) {
-            background-color: #f2f4f7;
+        a {
+            color: #0066cc;
+            text-decoration: none;
         }
-        tbody tr:hover {
-            background-color: #dceefb;
+        a:hover {
+            text-decoration: underline;
         }
-        section {
-            margin-bottom: 50px;
-        }
-        section h2 {
-            border-bottom: 2px solid #2980b9;
-            padding-bottom: 8px;
-            margin-bottom: 15px;
-            color: #2980b9;
-        }
-        /* Scroll horizontal en tablas pequeñas si es necesario */
-        .table-wrapper {
-            overflow-x: auto;
-        }
-        button.export-btn {
-            background-color: #2980b9;
+        .export-btn {
+            margin-top: 10px;
+            padding: 8px 15px;
+            background-color: #28a745;
             color: white;
             border: none;
-            padding: 10px 18px;
-            border-radius: 5px;
             cursor: pointer;
-            font-size: 14px;
-            transition: background-color 0.3s ease;
-        }
-        button.export-btn:hover {
-            background-color: #1c5980;
+            font-weight: bold;
+            border-radius: 4px;
         }
         .export-container {
-            margin-bottom: 40px;
-            text-align: right;
+            margin-bottom: 10px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Panel de Control - Ferretería</h1>
+    <h1>Panel de Control - Ferretería</h1>
 
-        <!-- Productos -->
-        <section>
-            <h2>Productos</h2>
-            <div class="table-wrapper">
-                <table id="table-productos">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Nombre</th>
-                            <th>Descripción</th>
-                            <th>Stock</th>
-                            <th>Precio</th>
-                            <th>Categoría</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for p in productos %}
-                        <tr>
-                            <td>{{ p.id }}</td>
-                            <td>{{ p.nombre }}</td>
-                            <td>{{ p.descripcion }}</td>
-                            <td>{{ p.stock }}</td>
-                            <td>{{ "%.2f"|format(p.precio) }}</td>
-                            <td>{{ p.categoria.nombre_categoria if p.categoria else 'Sin categoría' }}</td>
-                        </tr>
-                        {% else %}
-                        <tr><td colspan="6">No hay productos.</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            <div class="export-container">
-                <button class="export-btn" onclick="exportTableToJson('table-productos', 'productos.json')">Exportar JSON</button>
-            </div>
-        </section>
-
-        <!-- Clientes -->
-        <section>
-            <h2>Clientes</h2>
-            <div class="table-wrapper">
-                <table id="table-clientes">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Nombre Completo</th>
-                            <th>Teléfono</th>
-                            <th>Email</th>
-                            <th>Dirección</th>
-                            <th>Documento</th>
-                            <th>Tipo Cliente ID</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for c in clientes %}
-                        <tr>
-                            <td>{{ c.id }}</td>
-                            <td>{{ c.nombre_completo }}</td>
-                            <td>{{ c.telefono }}</td>
-                            <td>{{ c.email }}</td>
-                            <td>{{ c.direccion }}</td>
-                            <td>{{ c.documento }}</td>
-                            <td>{{ c.tipo_cliente_id }}</td>
-                        </tr>
-                        {% else %}
-                        <tr><td colspan="7">No hay clientes.</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            <div class="export-container">
-                <button class="export-btn" onclick="exportTableToJson('table-clientes', 'clientes.json')">Exportar JSON</button>
-            </div>
-        </section>
-
-        <!-- Categorías -->
-        <section>
-            <h2>Categorías</h2>
-            <div class="table-wrapper">
-                <table id="table-categorias">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Nombre Categoría</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for cat in categorias %}
-                        <tr>
-                            <td>{{ cat.id }}</td>
-                            <td>{{ cat.nombre_categoria }}</td>
-                        </tr>
-                        {% else %}
-                        <tr><td colspan="2">No hay categorías.</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            <div class="export-container">
-                <button class="export-btn" onclick="exportTableToJson('table-categorias', 'categorias.json')">Exportar JSON</button>
-            </div>
-        </section>
-
-        <!-- Facturas -->
-        <section>
-            <h2>Facturas</h2>
-            <div class="table-wrapper">
-                <table id="table-facturas">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>ID Cliente</th>
-                            <th>Método de Pago</th>
-                            <th>ID Estado</th>
-                            <th>Total Facturas</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for f in facturas %}
-                        <tr>
-                            <td>{{ f.id }}</td>
-                            <td>{{ f.id_cliente }}</td>
-                            <td>{{ f.metodo_pago }}</td>
-                            <td>{{ f.id_estado }}</td>
-                            <td>{{ "%.2f"|format(f.total_facturas) }}</td>
-                        </tr>
-                        {% else %}
-                        <tr><td colspan="5">No hay facturas.</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            <div class="export-container">
-                <button class="export-btn" onclick="exportTableToJson('table-facturas', 'facturas.json')">Exportar JSON</button>
-            </div>
-        </section>
-
-        <!-- Reseñas -->
-        <section>
-            <h2>Reseñas</h2>
-            <div class="table-wrapper">
-                <table id="table-resenas">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>ID Producto</th>
-                            <th>ID Cliente</th>
-                            <th>Comentario</th>
-                            <th>Puntuación</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for r in resenas %}
-                        <tr>
-                            <td>{{ r.id }}</td>
-                            <td>{{ r.producto_id }}</td>
-                            <td>{{ r.cliente_id }}</td>
-                            <td>{{ r.comentario }}</td>
-                            <td>{{ r.puntuacion }}</td>
-                        </tr>
-                        {% else %}
-                        <tr><td colspan="5">No hay reseñas.</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            <div class="export-container">
-                <button class="export-btn" onclick="exportTableToJson('table-resenas', 'resenas.json')">Exportar JSON</button>
-            </div>
-        </section>
-
-        <!-- Logs -->
-        <section>
-            <h2>Logs</h2>
-            <div class="table-wrapper">
-                <table id="table-logs">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Acción</th>
-                            <th>Nombre</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for l in logs %}
-                        <tr>
-                            <td>{{ l.id }}</td>
-                            <td>{{ l.accion }}</td>
-                            <td>{{ l.nombre }}</td>
-                        </tr>
-                        {% else %}
-                        <tr><td colspan="3">No hay logs.</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            <div class="export-container">
-                <button class="export-btn" onclick="exportTableToJson('table-logs', 'logs.json')">Exportar JSON</button>
-            </div>
-        </section>
-
+    <!-- Productos -->
+    <h2>Productos</h2>
+    <div class="export-container">
+        <a href="{{ url_for('crear_producto') }}"><button class="export-btn">Crear Producto</button></a>
     </div>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th><th>Nombre</th><th>Descripción</th><th>Stock</th><th>Precio</th><th>Categoría</th><th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in productos %}
+            <tr>
+                <td>{{ p.id }}</td>
+                <td>{{ p.nombre }}</td>
+                <td>{{ p.descripcion }}</td>
+                <td>{{ p.stock }}</td>
+                <td>{{ "%.2f"|format(p.precio) }}</td>
+                <td>{{ p.categoria.nombre_categoria if p.categoria else 'Sin categoría' }}</td>
+                <td>
+                    <a href="{{ url_for('editar_producto', id=p.id) }}">Editar</a> |
+                    <a href="{{ url_for('eliminar_producto', id=p.id) }}" onclick="return confirm('¿Eliminar este producto?')">Eliminar</a>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="7">No hay productos.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
 
-    <script>
-        // Función para exportar la tabla a JSON
-        function exportTableToJson(tableId, filename) {
-            const table = document.getElementById(tableId);
-            const headers = [];
-            const data = [];
+    <!-- Clientes -->
+    <h2>Clientes</h2>
+    <div class="export-container">
+        <a href="{{ url_for('crear_cliente') }}"><button class="export-btn">Crear Cliente</button></a>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th><th>Nombre</th><th>Teléfono</th><th>Dirección</th><th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for c in clientes %}
+            <tr>
+                <td>{{ c.id }}</td>
+                <td>{{ c.nombre }}</td>
+                <td>{{ c.telefono }}</td>
+                <td>{{ c.direccion }}</td>
+                <td>
+                    <a href="{{ url_for('editar_cliente', id=c.id) }}">Editar</a> |
+                    <a href="{{ url_for('eliminar_cliente', id=c.id) }}" onclick="return confirm('¿Eliminar este cliente?')">Eliminar</a>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5">No hay clientes.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
 
-            // Obtener headers
-            for (let th of table.querySelectorAll('thead th')) {
-                headers.push(th.innerText.trim());
-            }
+    <!-- Categorías -->
+    <h2>Categorías</h2>
+    <div class="export-container">
+        <a href="{{ url_for('crear_categoria') }}"><button class="export-btn">Crear Categoría</button></a>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th><th>Nombre</th><th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cat in categorias %}
+            <tr>
+                <td>{{ cat.id }}</td>
+                <td>{{ cat.nombre_categoria }}</td>
+                <td>
+                    <a href="{{ url_for('editar_categoria', id=cat.id) }}">Editar</a> |
+                    <a href="{{ url_for('eliminar_categoria', id=cat.id) }}" onclick="return confirm('¿Eliminar esta categoría?')">Eliminar</a>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="3">No hay categorías.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
 
-            // Obtener filas
-            for (let row of table.querySelectorAll('tbody tr')) {
-                // Evitar filas vacías o mensajes de "No hay..."
-                if (row.querySelector('td[colspan]')) continue;
+    <!-- Usuarios -->
+    <h2>Usuarios</h2>
+    <div class="export-container">
+        <a href="{{ url_for('crear_usuario') }}"><button class="export-btn">Crear Usuario</button></a>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th><th>Nombre de usuario</th><th>Correo</th><th>Rol</th><th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in usuarios %}
+            <tr>
+                <td>{{ u.id }}</td>
+                <td>{{ u.username }}</td>
+                <td>{{ u.email }}</td>
+                <td>{{ u.rol }}</td>
+                <td>
+                    <a href="{{ url_for('editar_usuario', id=u.id) }}">Editar</a> |
+                    <a href="{{ url_for('eliminar_usuario', id=u.id) }}" onclick="return confirm('¿Eliminar este usuario?')">Eliminar</a>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5">No hay usuarios.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
 
-                const rowData = {};
-                const cells = row.querySelectorAll('td');
-                cells.forEach((cell, index) => {
-                    rowData[headers[index]] = cell.innerText.trim();
-                });
-                data.push(rowData);
-            }
+    <!-- Ventas -->
+    <h2>Ventas</h2>
+    <div class="export-container">
+        <a href="{{ url_for('crear_venta') }}"><button class="export-btn">Registrar Venta</button></a>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th><th>Fecha</th><th>Total</th><th>Cliente</th><th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for v in ventas %}
+            <tr>
+                <td>{{ v.id }}</td>
+                <td>{{ v.fecha }}</td>
+                <td>{{ "%.2f"|format(v.total) }}</td>
+                <td>{{ v.cliente.nombre if v.cliente else 'Desconocido' }}</td>
+                <td>
+                    <a href="{{ url_for('editar_venta', id=v.id) }}">Editar</a> |
+                    <a href="{{ url_for('eliminar_venta', id=v.id) }}" onclick="return confirm('¿Eliminar esta venta?')">Eliminar</a>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5">No hay ventas.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
 
-            const jsonStr = JSON.stringify(data, null, 2);
-            const blob = new Blob([jsonStr], { type: "application/json" });
-            const url = URL.createObjectURL(blob);
-
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }
-    </script>
-
+    <!-- Detalles de Ventas -->
+    <h2>Detalle de Ventas</h2>
+    <div class="export-container">
+        <a href="{{ url_for('crear_detalle') }}"><button class="export-btn">Agregar Detalle</button></a>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th><th>Venta ID</th><th>Producto</th><th>Cantidad</th><th>Precio</th><th>Subtotal</th><th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for d in detalles %}
+            <tr>
+                <td>{{ d.id }}</td>
+                <td>{{ d.venta_id }}</td>
+                <td>{{ d.producto.nombre if d.producto else 'Desconocido' }}</td>
+                <td>{{ d.cantidad }}</td>
+                <td>{{ "%.2f"|format(d.precio) }}</td>
+                <td>{{ "%.2f"|format(d.cantidad * d.precio) }}</td>
+                <td>
+                    <a href="{{ url_for('editar_detalle', id=d.id) }}">Editar</a> |
+                    <a href="{{ url_for('eliminar_detalle', id=d.id) }}" onclick="return confirm('¿Eliminar este detalle?')">Eliminar</a>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="7">No hay detalles.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </body>
 </html>
