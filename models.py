@@ -1,33 +1,43 @@
-from db import get_connection
+from flask_sqlalchemy import SQLAlchemy
 
-def crear_tabla_productos():
-    query = """
-    CREATE TABLE IF NOT EXISTS productos (
-        id SERIAL PRIMARY KEY,
-        nombre VARCHAR(100) NOT NULL,
-        descripcion TEXT,
-        precio NUMERIC(10, 2) NOT NULL,
-        stock INTEGER NOT NULL
-    );
-    """
-    with get_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute(query)
-        conn.commit()
+db = SQLAlchemy()
 
-def insertar_producto(nombre, descripcion, precio, stock):
-    query = """
-    INSERT INTO productos (nombre, descripcion, precio, stock)
-    VALUES (%s, %s, %s, %s);
-    """
-    with get_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute(query, (nombre, descripcion, precio, stock))
-        conn.commit()
+class Producto(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(100))
+    descripcion = db.Column(db.String(200))
+    stock = db.Column(db.Integer)
+    precio = db.Column(db.Float)
+    id_categoria = db.Column(db.Integer, db.ForeignKey('categoria.id'))
 
-def listar_productos():
-    query = "SELECT * FROM productos;"
-    with get_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute(query)
-            return cur.fetchall()
+class Cliente(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    nombre_completo = db.Column(db.String(100))
+    telefono = db.Column(db.String(15))
+    email = db.Column(db.String(100))
+    direccion = db.Column(db.String(200))
+    documento = db.Column(db.String(20))
+    tipo_cliente_id = db.Column(db.Integer)
+
+class Categoria(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    nombre_categoria = db.Column(db.String(100))
+
+class Factura(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    id_cliente = db.Column(db.Integer, db.ForeignKey('cliente.id'))
+    metodo_pago = db.Column(db.String(50))
+    id_estado = db.Column(db.Integer)
+    total_facturas = db.Column(db.Float)
+
+class Resena(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    producto_id = db.Column(db.Integer, db.ForeignKey('producto.id'))
+    cliente_id = db.Column(db.Integer, db.ForeignKey('cliente.id'))
+    comentario = db.Column(db.String(300))
+    puntuacion = db.Column(db.Integer)
+
+class Log(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    accion = db.Column(db.String(100))
+    nombre = db.Column(db.String(100))
