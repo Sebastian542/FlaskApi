@@ -1,6 +1,5 @@
-from flask_sqlalchemy import SQLAlchemy
+from app import db
 
-db = SQLAlchemy()
 
 class Producto(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -9,6 +8,8 @@ class Producto(db.Model):
     stock = db.Column(db.Integer, nullable=False)
     precio = db.Column(db.Float, nullable=False)
     id_categoria = db.Column(db.Integer, db.ForeignKey('categoria.id_categoria'))
+    def __repr__(self):
+        return f'<Producto {self.nombre}>'
 
 class Cliente(db.Model):
     id = db.Column(db.Integer, primary_key=True)
